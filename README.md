@@ -57,7 +57,7 @@ public/          原样输出的静态资源
 
 ## 品牌素材与配色
 
-品牌图使用提供的 `D:/Downloads/aws-lambda-go-powertools/branding/rambow-cloud-avatar.png`，原样复制到 `public/branding/`。页头、页脚、favicon 与分享元数据共用这张图片，保留原始比例、配色及透明背景。
+品牌图使用提供的 `D:/Downloads/aws-lambda-go-powertools/branding/rambow-cloud-avatar.png`，原样复制到 `public/branding/`。页头、页脚、Apple touch icon 与分享元数据共用这张图片。浏览器图标使用由原图转换的 `public/favicon.ico`，包含 16、32、48、256 像素尺寸，保留原始比例、配色及透明背景；所有页面均引用 `/favicon.ico`（部署到仓库路径时自动加前缀）。
 
 项目卡片展示分类、名称、简介与代码预览，不展示 Logo。此前收集的项目图标素材保存在 `public/projects/`，来源与署名见该目录的 `README.md`。
 
