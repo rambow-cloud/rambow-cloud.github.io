@@ -1,0 +1,110 @@
+---
+import Icon from './Icon.astro';
+import { content, organization, projects, type Language } from '../data/site';
+
+interface Props {
+  project: (typeof projects)[number];
+  index: number;
+  lang: Language;
+}
+const { project, index, lang } = Astro.props;
+const t = content[lang];
+const url = `${organization}/${project.name}`;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const overviewUrl = `${base}/${lang}/projects/${project.name}/`;
+---
+
+<article class:list={['project-card', `project-${index}`]}>
+  <div class="project-top">
+    <span class="project-coordinate">0{index + 1} / OPEN SOURCE</span>
+  </div>
+  <p class="eyebrow project-category">{project.category}</p>
+  <h3>
+    <a href={overviewUrl}>{project.displayName}</a>
+  </h3>
+  <p class="project-description">{project.description[lang]}</p>
+
+  <div class="project-preview" aria-hidden="true">
+    {index === 0 && (
+      <>
+        <div class="preview-bar">
+          <span class="preview-dots">
+            <i></i>
+            <i></i>
+            <i></i>
+          </span>
+          <span>lambda / main.go</span>
+          <Icon name="terminal" size={13} />
+        </div>
+        <pre><code><span class="code-comment">// Observability, built in.</span>{'\n'}log := logger.New({'\n'}  logger.WithServiceName(<span class="code-string">"cloud"</span>),{'\n'})</code></pre>
+        <div class="preview-bottom">
+          <span>LOGS</span>
+          <span>METRICS</span>
+          <span>TRACES</span>
+        </div>
+      </>
+    )}
+    {index === 1 && (
+      <>
+        <div class="preview-bar">
+          <span class="preview-dots">
+            <i></i>
+            <i></i>
+            <i></i>
+          </span>
+          <span>cloud / client.go</span>
+          <Icon name="code" size={13} />
+        </div>
+        <pre><code><span class="code-comment">// Go, connected to the cloud.</span>{'\n'}client, err := ecs.New(config){'\n'}result, err :={'\n'}  client.DescribeRegions(ctx, <span class="code-keyword">nil</span>)</code></pre>
+        <div class="preview-bottom">
+          <span>GO SDK</span>
+          <span>ECS / STS / VPC</span>
+        </div>
+      </>
+    )}
+    {index === 2 && (
+      <>
+        <div class="preview-bar">
+          <span class="preview-dots">
+            <i></i>
+            <i></i>
+            <i></i>
+          </span>
+          <span>icons / collection</span>
+          <Icon name="grid" size={13} />
+        </div>
+        <div class="icon-preview">
+          {['terminal', 'layers', 'bolt', 'code', 'pulse', 'grid'].map(
+            (name) => (
+              <span>
+                <Icon name={name} size={26} />
+              </span>
+            ),
+          )}
+        </div>
+        <div class="preview-bottom">
+          <span>SVG</span>
+          <span>OFFLINE LIBRARY</span>
+          <span>draw.io</span>
+        </div>
+      </>
+    )}
+  </div>
+
+  <div class="tags">
+    {project.tags.map((tag) => (
+      <span>{tag}</span>
+    ))}
+  </div>
+  <div class="project-bottom">
+    <a class="project-source" href={overviewUrl}>
+      {t.projectOverview}
+      <span aria-hidden="true">→</span>
+    </a>
+    <a class="project-source" href={url}>
+      {t.source}
+      <Icon name="external" size={18} />
+    </a>
+  </div>
+  <p class="project-note">{project.note[lang]}</p>
+</article>

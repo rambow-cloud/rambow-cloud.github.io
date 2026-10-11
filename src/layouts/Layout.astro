@@ -1,0 +1,181 @@
+---
+import '../styles/global.css';
+import {
+  content,
+  organization,
+  type Language,
+  type Project,
+} from '../data/site';
+interface Props {
+  lang: Language;
+  autoDetect?: boolean;
+  project?: Project;
+}
+const { lang, autoDetect = false, project } = Astro.props;
+const t = content[lang];
+const pageTitle = project
+  ? `${project.displayName} — ${t.projectOverview} | Rambow Cloud`
+  : t.title;
+const pageDescription = project ? project.description[lang] : t.description;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const suffix = project ? `projects/${project.name}/` : '';
+const zhPath = `${base}/zh/${suffix}`;
+const enPath = `${base}/en/${suffix}`;
+const home = new URL(`${base}/`, Astro.site);
+const defaultLanguage = project ? new URL(enPath, Astro.site) : home;
+const canonical = new URL(
+  autoDetect ? `${base}/` : lang === 'zh' ? zhPath : enPath,
+  Astro.site,
+);
+const brandImage = new URL(
+  `${base}/branding/rambow-cloud-avatar.png`,
+  Astro.site,
+);
+const organizationId = `${home.href}#organization`;
+const websiteId = `${home.href}#website`;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': organizationId,
+      name: 'Rambow Cloud',
+      alternateName: ['Rambow', 'rambow.cloud'],
+      url: home.href,
+      logo: brandImage.href,
+      description: t.aboutText,
+      sameAs: [organization],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': websiteId,
+      name: 'Rambow Cloud',
+      alternateName: ['Rambow', home.hostname],
+      url: home.href,
+      description: t.description,
+      inLanguage: ['zh-CN', 'en'],
+      publisher: { '@id': organizationId },
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${canonical.href}#webpage`,
+      url: canonical.href,
+      name: pageTitle,
+      description: pageDescription,
+      inLanguage: t.htmlLang,
+      isPartOf: { '@id': websiteId },
+      about: { '@id': organizationId },
+      ...(project && { breadcrumb: { '@id': `${canonical.href}#breadcrumb` } }),
+    },
+    ...(project
+      ? [
+          {
+            '@type': 'BreadcrumbList',
+            '@id': `${canonical.href}#breadcrumb`,
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: t.home,
+                item: new URL(`${base}/${lang}/`, Astro.site).href,
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: project.displayName,
+                item: canonical.href,
+              },
+            ],
+          },
+        ]
+      : []),
+  ],
+};
+const jsonLd = JSON.stringify(structuredData).replace(/</g, '\\u003c');
+const googleVerification = import.meta.env.GOOGLE_SITE_VERIFICATION;
+const bingVerification = import.meta.env.BING_SITE_VERIFICATION;
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#edf5fc" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    {googleVerification && (
+      <meta name="google-site-verification" content={googleVerification} />
+    )}
+    {bingVerification && (
+      <meta name="msvalidate.01" content={bingVerification} />
+    )}
+    <link
+      rel="icon"
+      type="image/png"
+      href={`${base}/branding/rambow-cloud-avatar.png`}
+    />
+    <link
+      rel="apple-touch-icon"
+      href={`${base}/branding/rambow-cloud-avatar.png`}
+    />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="zh-CN" href={new URL(zhPath, Astro.site)} />
+    <link rel="alternate" hreflang="en" href={new URL(enPath, Astro.site)} />
+    <link rel="alternate" hreflang="x-default" href={defaultLanguage} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Rambow Cloud" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={brandImage} />
+    <meta property="og:image:alt" content="Rambow Cloud" />
+    <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'en_US'} />
+    <meta
+      property="og:locale:alternate"
+      content={lang === 'zh' ? 'en_US' : 'zh_CN'}
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={brandImage} />
+    <meta name="twitter:image:alt" content="Rambow Cloud" />
+    <script type="application/ld+json" is:inline set:html={jsonLd} />
+    {autoDetect && <script is:inline define:vars={{ base }}>
+      let preferred;
+      try {
+        preferred = localStorage.getItem('rambow-language');
+      } catch {}
+      if (preferred !== 'zh' && preferred !== 'en') {
+        preferred =
+          (navigator.languages || [navigator.language])
+            .map((language) => language.toLowerCase().split('-')[0])
+            .find((language) => language === 'zh' || language === 'en') || 'en';
+      }
+      window.location.replace(
+        `${base}/${preferred}/${window.location.search}${window.location.hash}`,
+      );
+    </script>}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      {t.skip}
+    </a>
+    <slot />
+  </body>
+</html>
+
+<script>
+  document
+    .querySelectorAll<HTMLAnchorElement>('[data-language]')
+    .forEach((link) => {
+      link.addEventListener('click', () => {
+        try {
+          localStorage.setItem('rambow-language', link.dataset.language!);
+        } catch {
+          /* Language links work without storage. */
+        }
+      });
+    });
+</script>

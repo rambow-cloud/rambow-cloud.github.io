@@ -1,0 +1,24 @@
+---
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<span class:list={['brand', { compact }]}>
+  <img
+    class="brand-mark"
+    src={`${base}/branding/rambow-cloud-avatar.png`}
+    width="56"
+    height="56"
+    alt=""
+    decoding="async"
+  />
+  {!compact && (
+    <span>
+      rambow<span class="brand-dot">.</span>
+      <span class="brand-cloud">cloud</span>
+    </span>
+  )}
+</span>
