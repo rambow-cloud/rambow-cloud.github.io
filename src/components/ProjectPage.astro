@@ -100,7 +100,7 @@ const repository = `${organization}/${project.name}`;
         {projects
           .filter((item) => item.name !== project.name)
           .map((item) => (
-            <a href={`${base}/${lang}/projects/${item.name}/`}>
+            <a href={item.documentation[lang]}>
               <span>{item.displayName}</span>
               <span aria-hidden="true">↗</span>
             </a>

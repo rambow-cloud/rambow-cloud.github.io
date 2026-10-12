@@ -89,7 +89,7 @@ GitHub Pages 默认入口和自定义域名共用这次部署。访问默认入�
 
 ### 子项目介绍与 sitelinks
 
-三个项目各有 `/zh/projects/<项目名>/` 与 `/en/projects/<项目名>/` 介绍页。首页项目名称与「项目介绍」链接指向站内介绍，源码链接继续指向 GitHub。介绍页包含项目说明、功能概要、文档入口、相关项目链接及 `BreadcrumbList`，切换语言时保持当前项目。项目介绍与文档地址统一维护在 `src/data/site.ts`。
+首页项目名称与「文档与使用指南」直接打开项目站点：Powertools 指向 `https://powertools-lambda-go.rambow.cloud/`，图标集按语言指向 `https://icons.rambow.cloud/discover/zh-CN/` 或 `/discover/en/`；阿里云 Go SDK 暂无独立站点，使用 GitHub 中英文文档。源码链接指向 GitHub。站内 `/zh/projects/<项目名>/` 与 `/en/projects/<项目名>/` 介绍页继续用于项目介绍与搜索收录，相关项目链接同样直接打开项目站点。项目介绍与文档地址统一维护在 `src/data/site.ts`。
 
 这些独立页面、简洁标题及内部链接为项目 sitelinks 提供候选入口。搜索结果中的 sitelinks 由 Google 自动生成，无法通过标签或结构化数据强制指定；实现参考 [Google sitelinks 指南](https://developers.google.com/search/docs/appearance/sitelinks)。上线后也可通过 Search Console 请求索引这些页面。
 

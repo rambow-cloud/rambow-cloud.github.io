@@ -10,8 +10,7 @@ interface Props {
 const { project, index, lang } = Astro.props;
 const t = content[lang];
 const url = `${organization}/${project.name}`;
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const overviewUrl = `${base}/${lang}/projects/${project.name}/`;
+const projectUrl = project.documentation[lang];
 ---
 
 <article class:list={['project-card', `project-${index}`]}>
@@ -20,7 +19,7 @@ const overviewUrl = `${base}/${lang}/projects/${project.name}/`;
   </div>
   <p class="eyebrow project-category">{project.category}</p>
   <h3>
-    <a href={overviewUrl}>{project.displayName}</a>
+    <a href={projectUrl}>{project.displayName}</a>
   </h3>
   <p class="project-description">{project.description[lang]}</p>
 
@@ -97,9 +96,9 @@ const overviewUrl = `${base}/${lang}/projects/${project.name}/`;
     ))}
   </div>
   <div class="project-bottom">
-    <a class="project-source" href={overviewUrl}>
-      {t.projectOverview}
-      <span aria-hidden="true">→</span>
+    <a class="project-source" href={projectUrl}>
+      {t.projectDocs}
+      <Icon name="external" size={18} />
     </a>
     <a class="project-source" href={url}>
       {t.source}
