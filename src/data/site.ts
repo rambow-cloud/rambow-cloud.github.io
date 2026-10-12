@@ -143,8 +143,8 @@ export const projects = [
       ],
     },
     documentation: {
-      zh: 'https://icons.rambow.cloud/discover/zh-CN/',
-      en: 'https://icons.rambow.cloud/discover/en/',
+      zh: 'https://icons.rambow.cloud/',
+      en: 'https://icons.rambow.cloud/',
     },
   },
 ] as const;
