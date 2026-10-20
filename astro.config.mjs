@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-const site = process.env.SITE_URL || 'https://rambow-cloud.github.io';
+const site = process.env.SITE_URL || 'https://rambow.cloud';
 const base = (process.env.BASE_PATH || '/').replace(/\/$/, '');
 const home = new URL(`${base}/`, site).href;
 const languageLinks = [
@@ -9,7 +9,12 @@ const languageLinks = [
   { lang: 'en', url: new URL(`${base}/en/`, site).href },
   { lang: 'x-default', url: home },
 ];
-const homepages = new Set(languageLinks.map(({ url }) => url));
+// The root selects a language and redirects; only submit content pages for indexing.
+const homepages = new Set(
+  languageLinks
+    .filter(({ lang }) => lang !== 'x-default')
+    .map(({ url }) => url),
+);
 const rootPath = new URL(home).pathname;
 const projectPath = (url) =>
   new URL(url).pathname

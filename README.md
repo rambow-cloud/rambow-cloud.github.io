@@ -73,7 +73,7 @@ PR 执行格式检查、Astro 检查与构建；`main` 执行相同检查，成�
 
 工作流使用创建时核实的稳定版本：`checkout@v7.0.1`、`setup-node@v7.1.0`、`configure-pages@v6.0.0`、`upload-pages-artifact@v5.0.0`、`deploy-pages@v5.0.1`。Dependabot 每周检查 npm 与 Actions 更新。
 
-Actions 优先读取仓库变量 `SITE_URL` 与 `BASE_PATH`，未设置时从 Pages 配置读取域名与仓库路径，自动适配组织首页仓库、普通项目仓库及已配置的自定义域名。其他静态平台可通过同名构建环境变量指定实际地址，参考 `.env.example`；未设置时本地使用 `/`。
+Actions 优先读取仓库变量 `SITE_URL` 与 `BASE_PATH`，未设置时从 Pages 配置读取域名与仓库路径，自动适配组织首页仓库、普通项目仓库及已配置的自定义域名。其他静态平台可通过同名构建环境变量指定实际地址，参考 `.env.example`；未设置时本地使用主域名 `https://rambow.cloud` 与根路径 `/` 生成 SEO 地址。
 
 ### 生产域名配置
 
@@ -87,7 +87,17 @@ GitHub Pages 默认入口和自定义域名共用这次部署。访问默认入�
 
 标题、描述及可见的组织介绍使用 `Rambow Cloud` 与简称 `Rambow`，保持品牌名称一致。HTML 静态输出完整内容，不依赖客户端加载项目资料。每页包含 canonical、中英文互相对应的 `hreflang`、社交分享元数据，以及 `Organization`、`WebSite`、`WebPage` JSON-LD；结构化数据关联官方 GitHub 组织。根入口是 `x-default`，保留浏览器语言选择；固定语言页面始终可直接抓取。
 
-`sitemap-index.xml` 与 `sitemap-0.xml` 列出根入口、两种语言首页及六个项目介绍页，并包含语言对应关系。`robots.txt` 允许抓取并引用同一主域名的 sitemap。canonical、sitemap、结构化数据与分享地址全部由 `SITE_URL` 和 `BASE_PATH` 一起生成，不随访问者使用的域名改变。品牌别名参考 [Google 网站名称指南](https://developers.google.com/search/docs/appearance/site-names)，双域名统一地址参考 [Google canonical 指南](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)。
+`sitemap-index.xml` 引用 `sitemap-0.xml`，后者只把两种语言首页及六个项目介绍页列为 `<loc>` 收录目标，并包含语言对应关系。根入口 `/` 用于自动选择语言，不作为独立收录目标提交，仍保留在首页语言组的 `x-default` 链接中。`robots.txt` 允许抓取并引用同一主域名的 sitemap。canonical、sitemap、结构化数据与分享地址全部由 `SITE_URL` 和 `BASE_PATH` 一起生成，不随访问者使用的域名改变。品牌别名参考 [Google 网站名称指南](https://developers.google.com/search/docs/appearance/site-names)，双域名统一地址参考 [Google canonical 指南](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)。
+
+### Search Console 收录提示
+
+按受影响的具体 URL 判断，不以“所有排除项归零”为目标：
+
+- **Page with redirect（网页会自动重定向）**：根入口 `/` 会通过 JavaScript 进入固定语言页；HTTP、备用域名或无尾斜杠地址也可能在托管层重定向。这些入口被排除可以符合预期，应检查最终的主域名正文 URL 是否收录。代码只在根入口自动选择语言，`/zh/`、`/en/` 与项目介绍页不应触发该跳转。
+- **Alternate page with proper canonical tag（备用网页，有适当的规范标记）**：备用域名或带查询参数的重复地址指向主域名对应正文页时，被排除可以符合预期。该状态不等于 `hreflang` 的语言对应关系；中文与英文正文页分别使用自己的 canonical，不应通过 canonical 合并为同一个语言版本。
+- 如果受影响的是 `https://rambow.cloud/zh/`、`https://rambow.cloud/en/` 或主域名项目介绍页，在 URL 检查中对照“用户声明的规范网址”“Google 选择的规范网址”和上次抓取时间。正文页的 canonical 应是相同语言、相同项目、带尾斜杠的主域名地址；如指向 GitHub 域名，检查构建变量 `SITE_URL` 并重新部署。
+
+部署后，在浏览器打开 `https://rambow.cloud/sitemap-0.xml`，确认只有八个正文 `<loc>`，根入口只出现在 `x-default` 链接中；查看 `/zh/`、`/en/` 的页面源代码，确认 canonical 分别指向自身。然后在主域名 Search Console 属性中提交 `https://rambow.cloud/sitemap-index.xml`，对需要收录的正文页执行实时测试并请求编入索引。预期的跳转或重复 URL 无需申请消除排除状态；报告更新需要 Google 重新抓取，也不保证请求后立即收录。状态含义见 [Google 网页索引报告说明](https://support.google.com/webmasters/answer/7440203?hl=zh-Hans)。
 
 ### 子项目介绍与 sitelinks
 

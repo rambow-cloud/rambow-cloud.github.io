@@ -48,7 +48,7 @@ jobs:
       - name: Build static website
         run: npm run build
         env:
-          SITE_URL: ${{ vars.SITE_URL || steps.pages.outputs.origin || 'https://rambow-cloud.github.io' }}
+          SITE_URL: ${{ vars.SITE_URL || steps.pages.outputs.origin || 'https://rambow.cloud' }}
           BASE_PATH: ${{ vars.BASE_PATH || steps.pages.outputs.base_path || '/' }}
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
           BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
