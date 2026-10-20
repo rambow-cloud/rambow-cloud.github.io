@@ -17,7 +17,7 @@ interface Props {
 const { lang, project } = Astro.props;
 const t = content[lang];
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const home = `${base}/${lang}/`;
+const home = lang === 'zh' ? `${base}/` : `${base}/en/`;
 const otherLanguage = lang === 'zh' ? 'en' : 'zh';
 const languageUrl = `${base}/${otherLanguage}/projects/${project.name}/`;
 const repository = `${organization}/${project.name}`;
@@ -33,7 +33,6 @@ const repository = `${organization}/${project.name}`;
         <a
           class="language-link"
           href={languageUrl}
-          data-language={otherLanguage}
           lang={otherLanguage === 'zh' ? 'zh-CN' : 'en'}
           aria-label={t.languageLabel}
         >

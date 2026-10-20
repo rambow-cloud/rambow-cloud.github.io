@@ -30,13 +30,12 @@ npm run dev
 | `npm run format`       | 使用 Prettier 格式化文件        |
 | `npm run format:check` | 检查格式，供 CI 使用            |
 
-## 中英文与浏览器语言
+## 中英文与首页地址
 
-- `/` 自动选择语言，优先使用已保存的手动选择，否则按 `navigator.languages` 顺序选择首个中文或英文；其他语言回退英文。
-- `zh-CN`、`zh-TW`、`zh-HK` 等中文偏好统一显示简体中文，英文地区变体统一进入英文页面。
-- `/zh/` 与 `/en/` 是固定语言页面，直接访问不会被浏览器语言改写。
-- 导航栏及页脚的语言链接会保存选择到 `localStorage`。浏览器禁用存储时，切换链接仍然可用。
-- 禁用 JavaScript 时，根路径显示中文，仍可通过链接访问两种语言。
+- `/` 直接显示完整中文首页，canonical 指向根地址自身，作为官网主入口争取收录。
+- `/en/` 是独立英文首页，canonical 指向自身；导航栏及页脚提供中英文切换链接，中文首页链接统一指向 `/`。
+- `/zh/` 保留为旧链接兼容页面，展示同一中文首页，canonical 指向 `/`，不在 sitemap 中重复提交。中文项目介绍页仍使用 `/zh/projects/<项目名>/`。
+- 不按浏览器语言或旧的 `rambow-language` 存储值自动跳转；访问根地址始终停留在根地址。手动切换通过普通链接完成，不依赖 JavaScript 或存储。
 
 在 `src/data/site.ts` 维护对应文案与项目介绍；布局和组件共用，避免两种语言出现结构差异。
 
@@ -48,7 +47,7 @@ npm run dev
 src/
   components/     页面区块、品牌与图标
   data/site.ts    中英文内容与项目资料
-  layouts/       HTML 文档、SEO 与入口语言匹配
+  layouts/       HTML 文档、SEO 与语言对应关系
   pages/         首页、zh/、en/ 与 robots.txt
   styles/        响应式全局样式
 public/          原样输出的静态资源
@@ -85,19 +84,19 @@ GitHub Pages 默认入口和自定义域名共用这次部署。访问默认入�
 
 ## SEO 与双域名
 
-标题、描述及可见的组织介绍使用 `Rambow Cloud` 与简称 `Rambow`，保持品牌名称一致。HTML 静态输出完整内容，不依赖客户端加载项目资料。每页包含 canonical、中英文互相对应的 `hreflang`、社交分享元数据，以及 `Organization`、`WebSite`、`WebPage` JSON-LD；结构化数据关联官方 GitHub 组织。根入口是 `x-default`，保留浏览器语言选择；固定语言页面始终可直接抓取。
+标题、描述及可见的组织介绍使用 `Rambow Cloud` 与简称 `Rambow`，保持品牌名称一致。HTML 静态输出完整内容，不依赖客户端加载项目资料。每页包含 canonical、中英文互相对应的 `hreflang`、社交分享元数据，以及 `Organization`、`WebSite`、`WebPage` JSON-LD；结构化数据关联官方 GitHub 组织。根地址直接展示中文首页，同时是首页语言组的 `zh-CN` 和 `x-default`；英文对应 `/en/`，两者均可直接抓取。
 
-`sitemap-index.xml` 引用 `sitemap-0.xml`，后者只把两种语言首页及六个项目介绍页列为 `<loc>` 收录目标，并包含语言对应关系。根入口 `/` 用于自动选择语言，不作为独立收录目标提交，仍保留在首页语言组的 `x-default` 链接中。`robots.txt` 允许抓取并引用同一主域名的 sitemap。canonical、sitemap、结构化数据与分享地址全部由 `SITE_URL` 和 `BASE_PATH` 一起生成，不随访问者使用的域名改变。品牌别名参考 [Google 网站名称指南](https://developers.google.com/search/docs/appearance/site-names)，双域名统一地址参考 [Google canonical 指南](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)。
+`sitemap-index.xml` 引用 `sitemap-0.xml`，后者把根首页 `/`、英文首页 `/en/` 及六个项目介绍页列为八个 `<loc>` 收录目标，并包含语言对应关系。旧中文首页 `/zh/` 不重复提交。`robots.txt` 允许抓取并引用同一主域名的 sitemap。canonical、sitemap、结构化数据与分享地址全部由 `SITE_URL` 和 `BASE_PATH` 一起生成，不随访问者使用的域名改变。品牌别名参考 [Google 网站名称指南](https://developers.google.com/search/docs/appearance/site-names)，双域名统一地址参考 [Google canonical 指南](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)。
 
 ### Search Console 收录提示
 
 按受影响的具体 URL 判断，不以“所有排除项归零”为目标：
 
-- **Page with redirect（网页会自动重定向）**：根入口 `/` 会通过 JavaScript 进入固定语言页；HTTP、备用域名或无尾斜杠地址也可能在托管层重定向。这些入口被排除可以符合预期，应检查最终的主域名正文 URL 是否收录。代码只在根入口自动选择语言，`/zh/`、`/en/` 与项目介绍页不应触发该跳转。
-- **Alternate page with proper canonical tag（备用网页，有适当的规范标记）**：备用域名或带查询参数的重复地址指向主域名对应正文页时，被排除可以符合预期。该状态不等于 `hreflang` 的语言对应关系；中文与英文正文页分别使用自己的 canonical，不应通过 canonical 合并为同一个语言版本。
-- 如果受影响的是 `https://rambow.cloud/zh/`、`https://rambow.cloud/en/` 或主域名项目介绍页，在 URL 检查中对照“用户声明的规范网址”“Google 选择的规范网址”和上次抓取时间。正文页的 canonical 应是相同语言、相同项目、带尾斜杠的主域名地址；如指向 GitHub 域名，检查构建变量 `SITE_URL` 并重新部署。
+- **Page with redirect（网页会自动重定向）**：HTTP、备用域名或无尾斜杠地址可能在托管层重定向，这些入口被排除可以符合预期。根地址 `/` 已取消浏览器语言自动跳转，应作为首页参与收录；如果报告仍显示根地址跳转，应对照上次抓取时间并执行实时测试，区分历史结果与当前部署。
+- **Alternate page with proper canonical tag（备用网页，有适当的规范标记）**：旧中文首页 `/zh/`、备用域名或带查询参数的重复地址指向主域名对应正文页时，被排除可以符合预期。该状态不等于 `hreflang` 的语言对应关系；根首页与英文首页分别使用自己的 canonical，项目页同样按语言和项目保留独立 canonical。
+- 如果受影响的是 `https://rambow.cloud/`、`https://rambow.cloud/en/` 或主域名项目介绍页，在 URL 检查中对照“用户声明的规范网址”“Google 选择的规范网址”和上次抓取时间。正文页的 canonical 应指向自身；旧 `/zh/` 首页统一指向 `/`。如正文页指向 GitHub 域名，检查构建变量 `SITE_URL` 并重新部署。
 
-部署后，在浏览器打开 `https://rambow.cloud/sitemap-0.xml`，确认只有八个正文 `<loc>`，根入口只出现在 `x-default` 链接中；查看 `/zh/`、`/en/` 的页面源代码，确认 canonical 分别指向自身。然后在主域名 Search Console 属性中提交 `https://rambow.cloud/sitemap-index.xml`，对需要收录的正文页执行实时测试并请求编入索引。预期的跳转或重复 URL 无需申请消除排除状态；报告更新需要 Google 重新抓取，也不保证请求后立即收录。状态含义见 [Google 网页索引报告说明](https://support.google.com/webmasters/answer/7440203?hl=zh-Hans)。
+部署后，在浏览器打开 `https://rambow.cloud/sitemap-0.xml`，确认八个正文 `<loc>` 包含根地址 `/` 和 `/en/`，不包含旧首页 `/zh/`；查看 `/`、`/en/` 的页面源代码，确认 canonical 分别指向自身，首页 `hreflang="zh-CN"` 和 `x-default` 均指向根地址。然后在主域名 Search Console 属性中提交 `https://rambow.cloud/sitemap-index.xml`，优先对根地址执行实时测试并请求编入索引，再检查英文及项目介绍页。预期的跳转或重复 URL 无需申请消除排除状态；报告更新需要 Google 重新抓取，也不保证请求后立即收录。状态含义见 [Google 网页索引报告说明](https://support.google.com/webmasters/answer/7440203?hl=zh-Hans)。
 
 ### 子项目介绍与 sitelinks
 
@@ -117,7 +116,7 @@ GitHub Pages 默认入口和自定义域名共用这次部署。访问默认入�
 上线后执行以下步骤：
 
 1. 在 [Google Search Console](https://search.google.com/search-console) 添加两个站点属性。GitHub 域名可用 URL 前缀属性和 HTML 标签验证；将标签的 `content` 值保存到仓库变量 `GOOGLE_SITE_VERIFICATION` 后重新部署。需要 Bing 时同样设置 `BING_SITE_VERIFICATION`（只填验证值，不填整个标签）。
-2. 在主站属性提交 `https://<主域名>/sitemap-index.xml`，使用 URL 检查工具请求索引 `/zh/`、`/en/` 及项目介绍页。普通项目站点需加上仓库路径。切换域名后更新提交地址。
+2. 在主站属性提交 `https://<主域名>/sitemap-index.xml`，使用 URL 检查工具请求索引 `/`、`/en/` 及项目介绍页。普通项目站点需加上仓库路径。切换域名后更新提交地址。
 3. 在 GitHub 组织简介及项目 README 中将官网链接指向主域名，帮助搜索引擎发现网站并关联品牌。
 
 这些配置帮助搜索引擎理解与发现网站；是否收录及 `rambow cloud`、`rambow` 的具体排名由搜索引擎决定，不能保证即时搜索可见。
@@ -126,11 +125,11 @@ GitHub Pages 默认入口和自定义域名共用这次部署。访问默认入�
 
 启动 `npm run dev`，打开 `http://localhost:4321/`：
 
-1. 清除站点存储中的 `rambow-language`，将浏览器首选语言设为中文或英文，确认首页分别进入 `/zh/` 或 `/en/`。
-2. 手动切换语言，再访问 `/`，确认使用保存的选择。
-3. 直接访问 `/zh/` 与 `/en/`，确认语言保持固定；在约 375px 与 1440px 宽度检查布局、栏目链接及 GitHub 链接。
+1. 将浏览器首选语言分别设为中文或英文，访问 `/`，确认始终显示中文且地址不跳转；保留或清除旧存储值 `rambow-language` 均不应改变这个行为。
+2. 从根首页手动切换英文，确认进入 `/en/`；再切换中文，确认回到 `/`。在禁用 JavaScript 时重复切换，链接仍应正常工作。
+3. 直接访问 `/zh/`，确认旧链接仍展示中文首页且 canonical 指向 `/`；在约 375px 与 1440px 宽度检查根首页与 `/en/` 的布局、栏目链接及 GitHub 链接。
 4. 部署后打开 Actions 的 `github-pages` 环境给出的实际 URL，确认两种语言与静态资源均能访问。
-5. 在浏览器查看 `/`、`/zh/`、`/en/` 的页面源代码，确认 canonical 与 `application/ld+json` 使用当前主域名；打开 `/robots.txt` 与 `/sitemap-index.xml` 检查主域名与部署路径。自定义域名上线后，检查两个域名的入口与语言链接。
+5. 在浏览器查看 `/`、`/zh/`、`/en/` 的页面源代码，确认前两个页面的 canonical 与 `WebPage` 地址均为主域名根地址，英文页面指向自身；打开 `/robots.txt`、`/sitemap-index.xml` 与 `/sitemap-0.xml`，检查主域名、部署路径及根首页收录目标。自定义域名上线后，检查两个域名的入口与语言链接。
 6. 点击首页三个项目名称或「项目介绍」，确认打开对应介绍页；切换语言应保留项目，文档、源码、相关项目及首页链接应跳转到对应位置。首页项目标题旁不再显示数量。
 
 本地构建检查不等于浏览器验收或远端 Actions 已通过。贡献约定见 [AGENTS.md](AGENTS.md)。

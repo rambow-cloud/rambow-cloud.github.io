@@ -5,16 +5,12 @@ const site = process.env.SITE_URL || 'https://rambow.cloud';
 const base = (process.env.BASE_PATH || '/').replace(/\/$/, '');
 const home = new URL(`${base}/`, site).href;
 const languageLinks = [
-  { lang: 'zh-CN', url: new URL(`${base}/zh/`, site).href },
+  { lang: 'zh-CN', url: home },
   { lang: 'en', url: new URL(`${base}/en/`, site).href },
   { lang: 'x-default', url: home },
 ];
-// The root selects a language and redirects; only submit content pages for indexing.
-const homepages = new Set(
-  languageLinks
-    .filter(({ lang }) => lang !== 'x-default')
-    .map(({ url }) => url),
-);
+// Submit the root homepage and English version; /zh/ is a legacy duplicate.
+const homepages = new Set(languageLinks.map(({ url }) => url));
 const rootPath = new URL(home).pathname;
 const projectPath = (url) =>
   new URL(url).pathname

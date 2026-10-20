@@ -8,10 +8,9 @@ import {
 } from '../data/site';
 interface Props {
   lang: Language;
-  autoDetect?: boolean;
   project?: Project;
 }
-const { lang, autoDetect = false, project } = Astro.props;
+const { lang, project } = Astro.props;
 const t = content[lang];
 const pageTitle = project
   ? `${project.displayName} — ${t.projectOverview} | Rambow Cloud`
@@ -19,14 +18,11 @@ const pageTitle = project
 const pageDescription = project ? project.description[lang] : t.description;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const suffix = project ? `projects/${project.name}/` : '';
-const zhPath = `${base}/zh/${suffix}`;
+const zhPath = project ? `${base}/zh/${suffix}` : `${base}/`;
 const enPath = `${base}/en/${suffix}`;
 const home = new URL(`${base}/`, Astro.site);
 const defaultLanguage = project ? new URL(enPath, Astro.site) : home;
-const canonical = new URL(
-  autoDetect ? `${base}/` : lang === 'zh' ? zhPath : enPath,
-  Astro.site,
-);
+const canonical = new URL(lang === 'zh' ? zhPath : enPath, Astro.site);
 const brandImage = new URL(
   `${base}/branding/rambow-cloud-avatar.png`,
   Astro.site,
@@ -77,7 +73,10 @@ const structuredData = {
                 '@type': 'ListItem',
                 position: 1,
                 name: t.home,
-                item: new URL(`${base}/${lang}/`, Astro.site).href,
+                item: new URL(
+                  lang === 'zh' ? `${base}/` : `${base}/en/`,
+                  Astro.site,
+                ).href,
               },
               {
                 '@type': 'ListItem',
@@ -144,21 +143,6 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION;
     <meta name="twitter:image" content={brandImage} />
     <meta name="twitter:image:alt" content="Rambow Cloud" />
     <script type="application/ld+json" is:inline set:html={jsonLd} />
-    {autoDetect && <script is:inline define:vars={{ base }}>
-      let preferred;
-      try {
-        preferred = localStorage.getItem('rambow-language');
-      } catch {}
-      if (preferred !== 'zh' && preferred !== 'en') {
-        preferred =
-          (navigator.languages || [navigator.language])
-            .map((language) => language.toLowerCase().split('-')[0])
-            .find((language) => language === 'zh' || language === 'en') || 'en';
-      }
-      window.location.replace(
-        `${base}/${preferred}/${window.location.search}${window.location.hash}`,
-      );
-    </script>}
   </head>
   <body>
     <a class="skip-link" href="#main">
@@ -167,17 +151,3 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION;
     <slot />
   </body>
 </html>
-
-<script>
-  document
-    .querySelectorAll<HTMLAnchorElement>('[data-language]')
-    .forEach((link) => {
-      link.addEventListener('click', () => {
-        try {
-          localStorage.setItem('rambow-language', link.dataset.language!);
-        } catch {
-          /* Language links work without storage. */
-        }
-      });
-    });
-</script>
